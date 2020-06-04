@@ -2,6 +2,7 @@ const enc = new TextDecoder('utf-8');
 let device = null;
 let server = null;
 let char1 = null;
+let char2 = null;
 let buff = [];
 
 window.onload = (event) => {
@@ -14,6 +15,9 @@ window.onload = (event) => {
     .getElementById('notifications')
     .addEventListener('click', startNotifications);
   document.getElementById('disconect').addEventListener('click', disconect);
+  document
+    .getElementById('color')
+    .addEventListener('change', (e) => getRGBColor(e.target.value));
 };
 async function startNotifications() {
   char1.addEventListener('characteristicvaluechanged', (e) => {
@@ -67,6 +71,10 @@ async function requestDevice() {
   char1 = await service
     .getCharacteristic(54321)
     .catch((err) => console.log(err));
+  // Connect to second characteristic
+  char2 = await service
+    .getCharacteristic(64321)
+    .catch((err) => console.log(err));
 }
 
 function addText(id, txt) {
@@ -75,7 +83,8 @@ function addText(id, txt) {
 
 function renderLog() {
   let temp = '';
-  for (let i of buff.reverse()) {
+  const clone = [...buff];
+  for (let i of clone.reverse()) {
     temp += `<div>${i}</div>`;
   }
   addText('log', temp);
@@ -84,4 +93,25 @@ function renderLog() {
 function disconect() {
   server.disconnect();
   addText('status', 'Disconnected / Desconectado');
+}
+
+function getRGBColor(h) {
+  console.log(h);
+  let r = 0,
+    g = 0,
+    b = 0;
+  //parseInt("0xff")
+  // 3 digits
+  if (h.length == 4) {
+    r = parseInt(`0x${h[1]}${h[1]}`);
+    g = parseInt(`0x${h[2]}${h[2]}`);
+    b = parseInt(`0x${h[3]}${h[3]}`);
+  }
+  // 6 digits
+  else if (h.length == 7) {
+    r = parseInt(`0x${h[1]}${h[2]}`);
+    g = parseInt(`0x${h[3]}${h[4]}`);
+    b = parseInt(`0x${h[5]}${h[6]}`);
+  }
+  char2.writeValue(new Uint8Array([r, g, b]).buffer);
 }
