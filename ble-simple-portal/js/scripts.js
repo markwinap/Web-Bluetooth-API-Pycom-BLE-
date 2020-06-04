@@ -3,7 +3,10 @@ let device = null;
 let server = null;
 let char1 = null;
 let buff = [];
+
 window.onload = (event) => {
+  // Attach click events to buttons
+  // Añadir eventos de click a los botones
   document
     .getElementById('request_device')
     .addEventListener('click', requestDevice);
@@ -22,6 +25,7 @@ async function startNotifications() {
     buff.push(JSON.stringify(json));
     renderLog();
   });
+  // https://developer.mozilla.org/en-US/docs/Web/API/BluetoothRemoteGATTCharacteristic/startNotifications
   await char1
     .startNotifications()
     .then((ress) => {
@@ -32,6 +36,7 @@ async function startNotifications() {
     });
 }
 async function requestDevice() {
+  //https://developer.mozilla.org/en-US/docs/Web/API/Bluetooth/requestDevice
   device = await navigator.bluetooth
     .requestDevice({
       acceptAllDevices: true,
@@ -46,22 +51,28 @@ async function requestDevice() {
       console.log(err);
       addText('status', 'Error');
     });
+
+  //Connect
+  // Conectar
   server = await device.gatt.connect().catch((err) => console.log(err));
+
+  //Get Primary Service
+  //Obtener el servicio primario
   service = await server
     .getPrimaryService(12345)
     .catch((err) => console.log(err));
+
+  //Get Primary Service Characteristic
+  //Obtener la caracteristica del servicio primario
   char1 = await service
     .getCharacteristic(54321)
     .catch((err) => console.log(err));
 }
+
 function addText(id, txt) {
   document.getElementById(id).innerHTML = txt;
 }
-function addTextNL(id, txt) {
-  const e = document.getElementById(id);
-  e.innerHTML = e.innerHTML + `<div>${txt}</div>`;
-  //document.getElementById(id).innerHTML = txt;
-}
+
 function renderLog() {
   let temp = '';
   for (let i of buff.reverse()) {
@@ -69,6 +80,7 @@ function renderLog() {
   }
   addText('log', temp);
 }
+
 function disconect() {
   server.disconnect();
   addText('status', 'Disconnected / Desconectado');
